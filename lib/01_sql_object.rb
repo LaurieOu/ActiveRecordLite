@@ -11,7 +11,7 @@ class SQLObject
         SELECT
           *
         FROM
-          cats
+          #{self.table_name}
        SQL
 
        @columns =  db_info[0].map {|column| column.to_sym}
@@ -70,10 +70,10 @@ class SQLObject
   def initialize(params = {})
     params.each do |attr_name, value|
       attr_name = attr_name.to_sym
-      if !self.class.columns.include?(attr_name)
-        raise "unknown attribute '#{attr_name}'"
+      if self.class.columns.include?(attr_name)
+        self.send "#{attr_name}=", value
       else
-        self.send "#{attr_name}=".to_sym, value
+        raise "unknown attribute '#{attr_name}'"
       end
     end
   end
