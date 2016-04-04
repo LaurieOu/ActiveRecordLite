@@ -36,10 +36,7 @@ class SQLObject
   end
 
   def self.table_name
-    return "humans" if self.to_s == "Human"
-
-    str_of_class = self.to_s
-    str_of_class.tableize
+    @table_name ||= self.name.pluralize.underscore
   end
 
   def self.all
@@ -64,7 +61,7 @@ class SQLObject
       FROM
         #{table_name}
       WHERE
-        #{table_name}.id= ?;
+        id= ?;
     SQL
 
     parse_all(result).first
@@ -86,18 +83,40 @@ class SQLObject
   end
 
   def attribute_values
-    # ...
+    self.class.columns.map {|column| send "#{column}".to_sym}
   end
 
   def insert
-    # ...
+    columns = self.class.columns.drop(1)
+    col_names = columns.map(&:to_s).join(", ")
+    question_marks = (["?"] * columns.count).join(", ")
+
+    DBConnection.execute(<<-SQL, *attribute_values.drop(1))
+      INSERT INTO
+        #{self.class.table_name}(#{col_names})
+      VALUES
+        (#{question_marks})
+    SQL
+
+    self.id = DBConnection.last_insert_row_id
+
   end
 
   def update
-    # ...
+    columns = self.class.columns
+    col_names = columns.map{|col| "#{col} = ?"}.join(", ")
+
+    DBConnection.execute(<<-SQL, *attribute_values, id)
+      UPDATE
+        #{self.class.table_name}
+      SET
+        #{col_names}
+      WHERE
+        #{self.class.table_name}.id = ?
+    SQL
   end
 
   def save
-    # ...
+    id.nil? ? insert : update
   end
 end
