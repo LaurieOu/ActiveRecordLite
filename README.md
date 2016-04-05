@@ -1,6 +1,6 @@
 # Active Record Lite
 I have recreated the basic functionality of Active Record, which is the M in MVC.
-Active Record is used by the model class which facilitates the the creation and
+Active Record is used by the model class which facilitates the creation and
 use of the business class and its interaction with the database.
 
 ## Created an SQL Object that interacts with the database
